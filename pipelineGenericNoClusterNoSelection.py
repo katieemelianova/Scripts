@@ -150,11 +150,12 @@ def getReadingFrame(A, N):
 				seqDists.append(dists[d])
 		for d in dists:
 			if d.startswith(i):
-				if dists[d] == min(seqDists):
-					seq = (allFramesDict[d])
-					seq = seq.replace('-', '')
-					protOutfile.write('>' + d + '\n' + seq + '\n')
-					nuclOutfile.write('>' + (d.split('_rframe')[0]) + '\n' + nucSeqsDict[(d.split('_rframe')[0])] + '\n')
+				if 'OUTGROUP' not in d:
+					if dists[d] == min(seqDists):
+						seq = (allFramesDict[d])
+						seq = seq.replace('-', '')
+						protOutfile.write('>' + d + '\n' + seq + '\n')
+						nuclOutfile.write('>' + (d.split('_rframe')[0]) + '\n' + nucSeqsDict[(d.split('_rframe')[0])] + '\n')
 
 def checkOrientation(nuc, prot):
 	codonTable = {
@@ -356,9 +357,121 @@ def prepareDBs():
 	return (identifiers_list, set_identifiers_list, dictionary_seq_dictionaries)
 
 
+def test():
+	expression = open('TMMNormalizedCountsNoHeader')
+	expressions = expression.readlines()
+	expressionDict = {}
+	for e in expressions:
+		transcriptName = e.split()[0]
+		expressionValues = e.split()[1:37]
+		#conExpressionValues = e.split()[1:19]
+		#pleExpressionValues = e.split()[19:37]
+		conExpressionValues = expressionValues[0:18]
+		pleExpressionValues = expressionValues[18:36]
+		for i in range(0,18):
+			print(expressionValues)[i]
+
+		#print((conExpressionValues))
+		print('\n')
+		#print((pleExpressionValues))
+		print('\n')
+		print('\n')
+		print('\n')
+		
+
+def getConPairwiseExpression(exp):
+	comparedList = []
+	pairwiseDifferences = []
+	if (len(exp)) > 1:
+		for i in exp:
+			for j in exp:
+				pair1 = (i,j)
+				pair2 = (j,i)
+				if pair1 not in comparedList:
+					if pair2 not in comparedList:
+						if i != j:
+							pairDifferences = []
+							for r in range(0,18):
+								difference = (float((exp[i])[r]) - float((exp[j])[r]))
+								difference = abs(difference)
+								pairDifferences.append(difference)
+							pairwiseDifference = [str(i), str(j), str((sum(pairDifferences))/18)]
+							pairwiseDifferences.append(pairwiseDifference)
+
+						comparedList.append(pair1)
+						comparedList.append(pair2)
+	return pairwiseDifferences
+	
+def getPlePairwiseExpression(exp):
+	comparedList = []
+	pairwiseDifferences = []
+	if (len(exp)) > 1:
+		for i in exp:
+			for j in exp:
+				pair1 = (i,j)
+				pair2 = (j,i)
+				if pair1 not in comparedList:
+					if pair2 not in comparedList:
+						if i != j:
+							pairDifferences = []
+							for r in range(18,36):
+								difference = (float((exp[i])[r]) - float((exp[j])[r]))
+								difference = abs(difference)
+								pairDifferences.append(difference)
+							pairwiseDifference = [str(i), str(j), str((sum(pairDifferences))/18)]
+							pairwiseDifferences.append(pairwiseDifference)
+
+						comparedList.append(pair1)
+						comparedList.append(pair2)
+	return pairwiseDifferences
+
+def getConPlePairwiseExpression(exp):
+	comparedList = []
+	pairwiseDifferences = []
+	if (len(exp)) > 1:
+		for i in exp:
+			for j in exp:
+				pair1 = (i,j)
+				pair2 = (j,i)
+				if pair1 not in comparedList:
+					if pair2 not in comparedList:
+						if i != j:
+							print(exp[i])
+							print(exp[j])
+							pairDifferences = []
+							for r in range(0,18):
+								print(float((exp[i])[r]))
+								print(float((exp[j])[r+18]))
+
+
+								difference = (float((exp[i])[r]) - float((exp[j])[r+18]))
+								difference = abs(difference)
+								pairDifferences.append(difference)
+							pairwiseDifference = [str(i), str(j), str((sum(pairDifferences))/18)]
+							pairwiseDifferences.append(pairwiseDifference)
+
+						comparedList.append(pair1)
+						comparedList.append(pair2)
+	#return pairwiseDifferences
+
+
+
 
 def RunPipeline(identifiers_list, set_identifiers_list, dictionary_seq_dictionaries):
 	counter = 0
+	
+	# put expression values across all Becon sequences into a dict
+	expression = open('TMMNormalizedCountsNoHeader')
+	expressions = expression.readlines()
+	expressionDict = {}
+	for e in expressions:
+		transcriptName = e.split()[0]
+		expressionValues = e.split()[1:37]
+		expressionDict[transcriptName] = expressionValues
+
+
+
+
 	f = open('OrthologousGroups.txt')
 	outfile = open('clusterOutFile', 'w')
 	clusters = f.readlines()
@@ -383,95 +496,89 @@ def RunPipeline(identifiers_list, set_identifiers_list, dictionary_seq_dictionar
 
 		###
 		if sum(seq_count) > 1:
+			if sum(seq_count) < 20:
 		###
-			outfile.write('Sequence Names: ')
-			# Store all sequence names in a list to be referred to later
-			seq = cluster.split('\t')
-			for i in seq:
-				seq_list.append(i)
-				outfile.write(i + '\t')
-			outfile.write('\n')
-			#write cluster sequences to FASTA file
-			outfile.write('Start Sequence Fasta \n')
-			for i in identifiers_list:
-				for x in seq:
-					if i != '\n':
-						if x != '\n':
-							if x.startswith(i):
-								file.write('>' + x + '\n' + (dictionary_seq_dictionaries[i])[x] + '\n')
-								outfile.write('>' + x + '\n' + (dictionary_seq_dictionaries[i])[x] + '\n')
-			outfile.write('End Sequence Fasta \n\n')
-		file.close()
-
-		findOrthologs('cluster.fasta')
-		f = open('cluster.fastaATnuclOrthologs')
-		orthologs = f.readlines()
-		if orthologs:
-			f = open('ATH_GO_GOSLIM.txt')
-			GO = {}
-			goFile = f.readlines()
-			for i in goFile:
-				AT = i.split('\t')[0]
-				ATGO = i.split('\t')[4]
-				ATGO = ATGO.lstrip()
-				ATGO = ATGO.rstrip()
-				GO[AT] = ATGO
-			
-
-			atOrthologList = []
-			outfile.write('Athaliana Orthologs: ')
-			for i in orthologs:
-				if i.startswith('>'):
-					atOrtholog = i.split('.')[0]
-					atOrtholog = atOrtholog.lstrip('>')
-					atOrtholog = atOrtholog.rstrip()
-					atOrthologList.append(atOrtholog)
-					outfile.write(str(atOrtholog) + '\t')
-			outfile.write('\n')
-			outfile.write('GO terms: ')
-			for a in atOrthologList:
-				outfile.write(GO[a] + '\t')
-			outfile.write('\n')
-			
-			translationalAlign(counter)
+				outfile.write('Sequence Names: ')
+				# Store all sequence names in a list to be referred to later
+				seq = cluster.split(' ')
+				for i in seq:
+					seq_list.append(i)
+					outfile.write(i + '\t')
+				outfile.write('\n')
+				#write cluster sequences to FASTA file
+				outfile.write('Start Sequence Fasta \n')
+				for i in identifiers_list:
+					for x in seq:
+						if i != '\n':
+							if x != '\n':
+								if x.startswith(i):
+									x = x.rstrip('.p\n')
+									file.write('>' + x + '\n' + (dictionary_seq_dictionaries[i])[x] + '\n')
+									outfile.write('>' + x + '\n' + (dictionary_seq_dictionaries[i])[x] + '\n')
+				outfile.write('End Sequence Fasta \n\n')
+				file.close()
 
 
-			
-	outfile.write('\n')
-		#file.close()
+				# get pairwise expression values
+
+				clusterExpressionDict = {}
+				for s in seq:
+					if s.startswith('Becon'):
+						if s in expressionDict:
+							seqExpression = expressionDict[s]
+							clusterExpressionDict[s] = seqExpression
+				CONlistOfPairwiseDifferences = getConPairwiseExpression(clusterExpressionDict)
+				getConPlePairwiseExpression(clusterExpressionDict)
+				#CONPLElistOfPairwiseDifferences = getConPlePairwiseExpression(clusterExpressionDict)
+				#print(CONPLElistOfPairwiseDifferences)
+
+
+
+
+				#findOrthologs('cluster.fasta')
+				#f = open('cluster.fastaATnuclOrthologs')
+				#orthologs = f.readlines()
+				#if orthologs:
+				#	f = open('ATH_GO_GOSLIM.txt')
+				#	GO = {}
+				#	goFile = f.readlines()
+				#	for i in goFile:
+				#		AT = i.split('\t')[0]
+				#		ATGO = i.split('\t')[4]
+				#		ATGO = ATGO.lstrip()
+				#		ATGO = ATGO.rstrip()
+				#		GO[AT] = ATGO
+					
+
+				#	atOrthologList = []
+				#	outfile.write('Athaliana Orthologs: ')
+				#	for i in orthologs:
+				#		if i.startswith('>'):
+				#			atOrtholog = i.split('.')[0]
+				#			atOrtholog = atOrtholog.lstrip('>')
+				#			atOrtholog = atOrtholog.rstrip()
+				#			atOrthologList.append(atOrtholog)
+				#			outfile.write(str(atOrtholog) + '\t')
+				#	outfile.write('\n')
+				#	outfile.write('GO terms: ')
+				#	for a in atOrthologList:
+				#		outfile.write(GO[a] + '\t')
+				#	outfile.write('\n')
+				#	
+				#	translationalAlign(counter)	
+
+
+
+
+			#outfile.write('\n')
 		
-	pamlOutfile.close()
 
 
-#CONtpmDict = {}
-#c = open('CONmeanTPMs')
-#c = c.readlines()
-#for i in c:
-#	i = i.lstrip()
-#	if not i.startswith('Trimmed'):
-#		ref = i.split()[0]
-#		ref = ref.split('_')[0]
-#		tissues = i.split()[1:7]
-#		CONtpmDict[ref] = (tissues)
-
-#PLEtpmDict = {}
-#p = open('PLEmeanTPMs')
-#p = p.readlines()
-#for j in p:
-#	j = j.lstrip()
-#	if not j.startswith('Trimmed'):
-#		ref = j.split()[0]
-#		ref = ref.split('_')[0]
-#		tissues = j.split()[1:7]
-#		PLEtpmDict[ref] = (tissues)
 
 
 idList, setidList, dictSeqDict = prepareDBs()
-#RunPipeline(idList, setidList, dictSeqDict)
-
-print(dictSeqDict)
-
-
+RunPipeline(idList, setidList, dictSeqDict)
+#test()
 
 
 
