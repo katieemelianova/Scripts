@@ -379,7 +379,7 @@ def test():
 		print('\n')
 		
 
-def getConPairwiseExpression(exp):
+def getPairwiseExpression(exp):
 	comparedList = []
 	pairwiseDifferences = []
 	if (len(exp)) > 1:
@@ -390,69 +390,27 @@ def getConPairwiseExpression(exp):
 				if pair1 not in comparedList:
 					if pair2 not in comparedList:
 						if i != j:
-							pairDifferences = []
+							ConpairDifferences = []
+							PlepairDifferences = []
+							ConplepairDifferences = []
 							for r in range(0,18):
-								difference = (float((exp[i])[r]) - float((exp[j])[r]))
-								difference = abs(difference)
-								pairDifferences.append(difference)
-							pairwiseDifference = [str(i), str(j), str((sum(pairDifferences))/18)]
-							pairwiseDifferences.append(pairwiseDifference)
-
-						comparedList.append(pair1)
-						comparedList.append(pair2)
-	return pairwiseDifferences
-	
-def getPlePairwiseExpression(exp):
-	comparedList = []
-	pairwiseDifferences = []
-	if (len(exp)) > 1:
-		for i in exp:
-			for j in exp:
-				pair1 = (i,j)
-				pair2 = (j,i)
-				if pair1 not in comparedList:
-					if pair2 not in comparedList:
-						if i != j:
-							pairDifferences = []
+								Condifference = (float((exp[i])[r]) - float((exp[j])[r]))
+								Condifference = abs(Condifference)
+								ConpairDifferences.append(Condifference)
+								ConPledifference = (float((exp[i])[r]) - float((exp[j])[r+18]))
+								ConPledifference = abs(ConPledifference)
+								ConplepairDifferences.append(ConPledifference)
 							for r in range(18,36):
-								difference = (float((exp[i])[r]) - float((exp[j])[r]))
-								difference = abs(difference)
-								pairDifferences.append(difference)
-							pairwiseDifference = [str(i), str(j), str((sum(pairDifferences))/18)]
+								Pledifference = (float((exp[i])[r]) - float((exp[j])[r]))
+								Pledifference = abs(Pledifference)
+								PlepairDifferences.append(Pledifference)
+							pairwiseDifference = [str(i), str(j), str((sum(ConpairDifferences))/18), str((sum(PlepairDifferences))/18), str((sum(ConplepairDifferences))/18)]
 							pairwiseDifferences.append(pairwiseDifference)
 
 						comparedList.append(pair1)
 						comparedList.append(pair2)
 	return pairwiseDifferences
 
-def getConPlePairwiseExpression(exp):
-	comparedList = []
-	pairwiseDifferences = []
-	if (len(exp)) > 1:
-		for i in exp:
-			for j in exp:
-				pair1 = (i,j)
-				pair2 = (j,i)
-				if pair1 not in comparedList:
-					if pair2 not in comparedList:
-						if i != j:
-							print(exp[i])
-							print(exp[j])
-							pairDifferences = []
-							for r in range(0,18):
-								print(float((exp[i])[r]))
-								print(float((exp[j])[r+18]))
-
-
-								difference = (float((exp[i])[r]) - float((exp[j])[r+18]))
-								difference = abs(difference)
-								pairDifferences.append(difference)
-							pairwiseDifference = [str(i), str(j), str((sum(pairDifferences))/18)]
-							pairwiseDifferences.append(pairwiseDifference)
-
-						comparedList.append(pair1)
-						comparedList.append(pair2)
-	#return pairwiseDifferences
 
 
 
@@ -491,16 +449,53 @@ def RunPipeline(identifiers_list, set_identifiers_list, dictionary_seq_dictionar
 			copyDict[x] = count
 			seq_count.append(count)
 			outfile.write(str(count) + '\t')
-		outfile.write('\n')
+		outfile.write('\n\n')
+
 
 
 		###
 		if sum(seq_count) > 1:
 			if sum(seq_count) < 20:
 		###
-				outfile.write('Sequence Names: ')
+
+				
 				# Store all sequence names in a list to be referred to later
 				seq = cluster.split(' ')
+
+				# get pairwise expression values
+				clusterExpressionDict = {}
+				for s in seq:
+					if s.startswith('Becon'):
+						if s in expressionDict:
+							seqExpression = expressionDict[s]
+							clusterExpressionDict[s] = seqExpression
+				# get pairwise differences between gene family members, within CON, within PLE, and between CON and PLE
+				#CONlistOfPairwiseDifferences = getConPairwiseExpression(clusterExpressionDict)
+				#PLElistOfPairwiseDifferences = getPlePairwiseExpression(clusterExpressionDict)
+				#CONPLElistOfPairwiseDifferences = getConPlePairwiseExpression(clusterExpressionDict)
+				
+				listOfPairwiseDifferences = getPairwiseExpression(clusterExpressionDict)
+
+				print(listOfPairwiseDifferences)
+				#if (len(CONlistOfPairwiseDifferences)) > 0:
+				#	outfile.write('Start Conchifolia pairwise differences\n')
+				#	for c in CONlistOfPairwiseDifferences:
+				#		outfile.write(' '.join(c) + '\n')
+				#	outfile.write('End Conchifolia pairwise differences \n\n')
+
+				#if (len(PLElistOfPairwiseDifferences)) > 0:
+				#	outfile.write('Start Plebeja pairwise differences\n')
+				#	for c in PLElistOfPairwiseDifferences:
+				#		outfile.write(' '.join(c) + '\n')
+				#	outfile.write('End Plebeja pairwise differences \n\n')
+
+				#if (len(CONPLElistOfPairwiseDifferences)) > 0:
+				#	outfile.write('Start Conchifolia v Plebeja pairwise differences\n')
+				#	for c in CONPLElistOfPairwiseDifferences:
+				#		outfile.write(' '.join(c) + '\n')
+				#	outfile.write('End Conchifolia v Plebeja pairwise differences \n\n')
+
+				outfile.write('Sequence Names: ')
 				for i in seq:
 					seq_list.append(i)
 					outfile.write(i + '\t')
@@ -519,19 +514,7 @@ def RunPipeline(identifiers_list, set_identifiers_list, dictionary_seq_dictionar
 				file.close()
 
 
-				# get pairwise expression values
-
-				clusterExpressionDict = {}
-				for s in seq:
-					if s.startswith('Becon'):
-						if s in expressionDict:
-							seqExpression = expressionDict[s]
-							clusterExpressionDict[s] = seqExpression
-				CONlistOfPairwiseDifferences = getConPairwiseExpression(clusterExpressionDict)
-				getConPlePairwiseExpression(clusterExpressionDict)
-				#CONPLElistOfPairwiseDifferences = getConPlePairwiseExpression(clusterExpressionDict)
-				#print(CONPLElistOfPairwiseDifferences)
-
+				
 
 
 
