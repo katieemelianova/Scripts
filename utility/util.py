@@ -30,19 +30,14 @@ class Utility():
 
         basecomplement = {'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A', 'N': 'N', '-': '-'}
         useq = seq.upper()
-        sort = str(type(useq))
         letters = list(useq)
         completters = [basecomplement[base] for base in letters]
-        sort = str(type(completters))
         rc_list =  completters[::-1]
-        sort = str(type(rc_list))
         rc_seq = "".join(rc_list)
-        sort = str(type(rc_list))
         return(rc_seq)
 
     def codons(self, seq):
         ORF_list = []
-        codon_list = []
         for i in range(len(seq)):
             codon = [seq[j:j+3] for j in range(i, len(seq), 3)]
 
@@ -61,7 +56,6 @@ class Utility():
     def get_longest_orf(self):
         seqs = self.fd
         stop_codons = ('TAG','TAA','TGA')
-
         for s in seqs:
             seq = seqs[s]
             compseq = self.rc(s)
@@ -69,7 +63,6 @@ class Utility():
             if any(stop not in s for stop in stop_codons) or any(stop not in compseq for stop in stop_codons):
                 print('This sequence has no stop codons - cannot determine correct reading frame')
                 print('>' + s + '\n' + seq + '\n')
-
             else:
                 FandR = []
                 F = self.codons(s)
