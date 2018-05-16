@@ -2,15 +2,12 @@ import os
 
 
 class Utility():
-    def __init__(self, fasta_file):
-        self.f = fasta_file
-        self.fd = self.fasta_dict()
 
-    def fasta_dict(self):
-        if not os.path.exists(self.f):
+    def fasta_dict(self, fasta):
+        if not os.path.exists(fasta):
             raise Exception('File not found; check path')
         d = {}
-        with open(self.f) as f:
+        with open(fasta) as f:
             for line in f:
                 if line.startswith(">"):
                     C_seq = ''
@@ -53,8 +50,8 @@ class Utility():
 
         return(max(ORF_list, key = len))
 
-    def get_longest_orf(self):
-        seqs = self.fd
+    def get_longest_orf(self, fasta):
+        seqs = self.fasta_dict(fasta)
         stop_codons = ('TAG','TAA','TGA')
         for s in seqs:
             seq = seqs[s]
@@ -70,3 +67,9 @@ class Utility():
                 FandR.append(F)
                 FandR.append(R)
                 print('>' + s + '\n' + max(FandR, key = len))
+
+
+
+    def reciprocal_best_hits(self):
+        pass
+        #WRITE
