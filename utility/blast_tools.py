@@ -1,21 +1,24 @@
 import os
 import argparse
 import pandas
+import subprocess
 from utility.util import Utility
 
 
-
 class Blast():
-    def __init__(self, query, db, outfmt=None, max_target_seqs=None, evalue=None, out='out.blast'):
-        self.query = query
-        self.db = db
+    def __init__(self, query, db, outfmt=None, max_target_seqs=None, evalue=None, out=None):
         if not outfmt:
             self.outfmt = '6 qseqid sseqid qstart qend sstart send length pident evalue'
         else:
             self.outfmt = outfmt
-        self.max_target_seqs = max_target_seqs
         self.evalue = evalue
-        self.out = out
+        if not out:
+            self.out = 'out.blast'
+        else:
+            self.out = out
+        self.query = query
+        self.db = db
+        self.max_target_seqs = max_target_seqs
         self.check_files()
 
     @property
@@ -53,34 +56,32 @@ class Blast():
             command = command + ' -out ' + str(self.out)
         return command
 
-    def blastn(self):
-        return self.blast_command('blastn')
-
-    def blastp(self):
-        return self.blast_command('blastp')
-
-    def blastx(self):
-        return self.blast_command('blastx')
-
-    def tblastn(self):
-        return self.blast_command('tblastn')
-
     def db_hits_fasta(self):
         out_fields = self.outfmt.split()
         out_fields.pop(0)
         sseq = out_fields.index('sseqid')
-        csv = pandas.read_csv(self.out, sep='\t', header=None)
-        db_names = list(csv[sseq])
-        return db_names
+        with open(self.out) as outfile:
+            if outfile.read():
+                csv = pandas.read_csv(self.out, sep='\t', header=None)
+                db_names = list(csv[sseq])
+                return db_names
+            else:
+                print('No hits found')
+                return []
 
     def write_hits_fasta(self):
         u = Utility()
         db_seqs = u.fasta_dict(self.db)
-        db_names = self.db_hits_fasta
+        db_names = self.db_hits_fasta()
         fasta_out = self.out + '.fasta'
-        with open('fasta_out') as outfile:
+        with open(fasta_out, 'w') as outfile:
             for n in db_names:
                 outfile.write('>' + n + '\n' + db_seqs[n] + '\n')
+
+    def run(self, program):
+        command = self.blast_command(program)
+        subprocess.call([command], shell=True)
+        self.write_hits_fasta()
 
 def main():
     parser = argparse.ArgumentParser()
@@ -92,6 +93,8 @@ def main():
     parser.add_argument('--evalue', required=False)
     parser.add_argument('--out', required=False)
     args = parser.parse_args()
+    b = Blast(args.query, args.db, outfmt=args.outfmt, evalue=args.evalue, out=args.out)
+    b.run(args.program)
 
 if __name__ == '__main__':
     main()
