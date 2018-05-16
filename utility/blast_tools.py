@@ -6,16 +6,10 @@ from utility.util import Utility
 
 
 class Blast():
-    def __init__(self, query, db, outfmt=None, max_target_seqs=None, evalue=None, out=None):
-        if not outfmt:
-            self.outfmt = '6 qseqid sseqid qstart qend sstart send length pident evalue'
-        else:
-            self.outfmt = outfmt
+    def __init__(self, query, db, outfmt, out, max_target_seqs, evalue):
+        self.outfmt = outfmt
         self.evalue = evalue
-        if not out:
-            self.out = 'out.blast'
-        else:
-            self.out = out
+        self.out = out
         self.query = query
         self.db = db
         self.max_target_seqs = max_target_seqs
@@ -46,7 +40,6 @@ class Blast():
 
     def blast_command(self, program):
         command = '%s -query %s -db %s' % (program, self.query, self.db)
-        self.outfmt = '"' + self.outfmt + '"'
         command = command + ' -outfmt ' + self.outfmt
         if self.max_target_seqs:
             command = command + ' -max_target_seqs ' + str(self.max_target_seqs)
@@ -56,45 +49,57 @@ class Blast():
             command = command + ' -out ' + str(self.out)
         return command
 
+    def mafft_command(self):
+        command = 'mafft %s > %s' % (self.out + '.fasta', self.out + '.fasta.aln')
+        return command
+
     def db_hits_fasta(self):
         out_fields = self.outfmt.split()
         out_fields.pop(0)
         sseq = out_fields.index('sseqid')
-        with open(self.out) as outfile:
-            if outfile.read():
-                csv = pandas.read_csv(self.out, sep='\t', header=None)
-                db_names = list(csv[sseq])
-                return db_names
-            else:
-                print('No hits found')
-                return []
+        csv = pandas.read_csv(self.out, sep='\t', header=None)
+        db_names = list(csv[sseq])
+        return db_names
 
-    def write_hits_fasta(self):
+
+    def write_hits_fasta(self, args):
+        min_length = args.min_hit_length or 0
         u = Utility()
         db_seqs = u.fasta_dict(self.db)
         db_names = self.db_hits_fasta()
         fasta_out = self.out + '.fasta'
         with open(fasta_out, 'w') as outfile:
             for n in db_names:
-                outfile.write('>' + n + '\n' + db_seqs[n] + '\n')
+                if len(db_seqs[n]) > min_length:
+                    outfile.write('>' + n + '\n' + db_seqs[n] + '\n')
 
-    def run(self, program):
-        command = self.blast_command(program)
+    def align(self):
+        subprocess.call([self.mafft_command()], shell=True)
+
+    def run(self, args):
+        command = self.blast_command(args.program)
         subprocess.call([command], shell=True)
-        self.write_hits_fasta()
+        with open(self.out) as outfile:
+            if outfile.read():
+                self.write_hits_fasta(args)
+                self.align()
+            else:
+                print('No hits found')
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--query', required=True)
     parser.add_argument('--db', required=True)
     parser.add_argument('--program', required=True)
-    parser.add_argument('--outfmt', required=False)
-    parser.add_argument('--max_target_seqs', required=False)
-    parser.add_argument('--evalue', required=False)
-    parser.add_argument('--out', required=False)
+    default_outfmt = '"6 qseqid sseqid qstart qend sstart send length pident evalue"'
+    parser.add_argument('--outfmt', default=default_outfmt)
+    parser.add_argument('--max_target_seqs', default=1)
+    parser.add_argument('--evalue', default='1e-5')
+    parser.add_argument('--out', default='out.blast')
+    parser.add_argument('--min_hit_length', default=0)
     args = parser.parse_args()
-    b = Blast(args.query, args.db, outfmt=args.outfmt, evalue=args.evalue, out=args.out)
-    b.run(args.program)
+    b = Blast(args.query, args.db, args.outfmt, args.out, args.max_target_seqs, args.evalue)
+    b.run(args)
 
 if __name__ == '__main__':
     main()
