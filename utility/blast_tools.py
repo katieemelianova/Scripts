@@ -97,7 +97,7 @@ def main():
     parser.add_argument('--program', required=True)
     default_outfmt = '"6 qseqid sseqid qstart qend sstart send length pident evalue"'
     parser.add_argument('--outfmt', default=default_outfmt)
-    parser.add_argument('--max_target_seqs', default=1)
+    parser.add_argument('--max_target_seqs', default=30)
     parser.add_argument('--evalue', default='1e-5')
     parser.add_argument('--out', default='out.blast')
     parser.add_argument('--min_hit_length', default=0)
