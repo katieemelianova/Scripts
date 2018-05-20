@@ -80,9 +80,13 @@ class Blast():
         command = self.blast_command(args.program)
         subprocess.call([command], shell=True)
         with open(self.out) as outfile:
-            if outfile.read():
+            num_hits = outfile.readlines()
+            if len(num_hits) > 0:
                 self.write_hits_fasta(args)
-                self.align()
+                if len(num_hits) > 1:
+                    self.align()
+                else:
+                    print('Not enough hits for an alignment')
             else:
                 print('No hits found')
 
