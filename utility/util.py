@@ -1,5 +1,5 @@
 import os
-
+import subprocess
 
 class Utility():
 
@@ -73,3 +73,5 @@ class Utility():
     def reciprocal_best_hits(self):
         pass
         #WRITE
+
+
