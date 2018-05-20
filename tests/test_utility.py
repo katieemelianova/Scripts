@@ -84,7 +84,7 @@ class TestBlastTools():
                                    out='/Users/katieemelianova/PycharmProjects/Scripts/tests/test_files/out.blast')
         f = b.db_hits_fasta()
 
-        assert f == ['AT5G13930.1', 'AT5G13930.1', 'AT5G13930.1', 'AT5G13930.1', 'AT5G13930.1', 'AT5G13930.1', 'AT5G13930.1', 'AT5G13930.1', 'AT5G13930.1', 'AT5G13930.1', 'AT5G13930.1', 'AT5G13930.1', 'AT5G13930.1']
+        assert f == ['AT5G13930.1']
 
 
 

@@ -58,7 +58,7 @@ class Blast():
         out_fields.pop(0)
         sseq = out_fields.index('sseqid')
         csv = pandas.read_csv(self.out, sep='\t', header=None)
-        db_names = list(csv[sseq])
+        db_names = list(set(list(csv[sseq])))
         return db_names
 
 
