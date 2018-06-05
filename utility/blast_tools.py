@@ -3,7 +3,6 @@ import argparse
 import pandas
 import subprocess
 from utility.util import Utility
-from utility.seq_tools import SeqTools
 
 
 class Blast():
