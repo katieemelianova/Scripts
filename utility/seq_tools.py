@@ -27,7 +27,6 @@ def run_augustus():
     pass
 
 def parse_augustus_outfile(annotation_file):
-
     outfile = annotation_file + '.fasta'
     with open(annotation_file) as openfile:
         line_number = len(openfile.readlines())
@@ -35,7 +34,6 @@ def parse_augustus_outfile(annotation_file):
     annotated_seqs = {}
     gene_name = ''
     seq = ''
-
     for i in range(line_number):
         line = f.next()
         if line.startswith('# start gene'):
